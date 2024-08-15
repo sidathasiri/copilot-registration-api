@@ -1,0 +1,15 @@
+{
+  "name": "copilot-registration-api",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "package": "zip -r lambda_function_payload.zip src node_modules"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.631.0"
+  }
+}
