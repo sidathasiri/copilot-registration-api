@@ -91,6 +91,35 @@ resource "aws_api_gateway_rest_api" "my_rest_api" {
   description = "Registration API for Copilot Usage Tracker"
 }
 
+resource "aws_api_gateway_model" "request_model" {
+  rest_api_id = aws_api_gateway_rest_api.my_rest_api.id
+  name        = "RegisterPostRequestModel"
+  content_type = "application/json"
+  schema = jsonencode({
+    type = "object"
+    properties = {
+      githubId = {
+        type = "string"
+      }
+      projectId = {
+        type = "string"
+      }
+      machineId = {
+        type = "string"
+      }
+    }
+    required = ["githubId", "projectId", "machineId"]
+    additionalProperties = false
+  })
+}
+
+resource "aws_api_gateway_request_validator" "request_validator" {
+  rest_api_id = aws_api_gateway_rest_api.my_rest_api.id
+  name        = "ValidateRequestBody"
+  validate_request_body = true
+  validate_request_parameters = false
+}
+
 # API Gateway Resource
 resource "aws_api_gateway_resource" "proxy" {
   rest_api_id = aws_api_gateway_rest_api.my_rest_api.id
@@ -104,6 +133,12 @@ resource "aws_api_gateway_method" "proxy_method" {
   resource_id   = aws_api_gateway_resource.proxy.id
   http_method   = "POST"
   authorization = "NONE"
+
+  request_validator_id = aws_api_gateway_request_validator.request_validator.id
+
+  request_models = {
+    "application/json" = aws_api_gateway_model.request_model.name
+  }
 }
 
 # API Gateway Integration
