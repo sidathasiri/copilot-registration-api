@@ -80,7 +80,8 @@ resource "aws_lambda_function" "my_lambda" {
 
   environment {
     variables = {
-      DYNAMODB_TABLE = aws_dynamodb_table.my_table.name
+      DYNAMODB_TABLE = aws_dynamodb_table.my_table.name,
+      API_KEY = "your_api_key"
     }
   }
 }
