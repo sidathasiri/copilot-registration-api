@@ -4,6 +4,14 @@ const dynamoDbClient = new DynamoDBClient({ region: "us-east-1" });
 
 exports.handler = async (event) => {
   const requestBody = JSON.parse(event.body);
+  const apiKey = event.headers["x-api-key"] ?? "";
+  if (apiKey !== process.env.API_KEY) {
+    console.log("Request is not authorized");
+    return {
+      statusCode: 401,
+      body: "Unauthorized",
+    };
+  }
 
   console.log("Request body", requestBody);
 
