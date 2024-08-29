@@ -2,7 +2,7 @@
 
 The **Copilot Registration API** facilitates the registration process for the GitHub Copilot usage tracker solution. It enables you to link your GitHub ID, Project ID, and Machine ID with your Copilot proxy. As the [GitHub Copilot Proxy](https://github.com/sidathasiri/copilot-proxy-server) only detects your device ID, this API allows you to map the device ID to your GitHub ID, ensuring accurate tracking. While the API can be used directly, registration is typically handled through the [Copilot Usage Analyzer tool](https://github.com/sidathasiri/copilot-usage-analyzer) for convenience.
 
-## Overall Solution
+## Solution Overview
 
 The API is built as a RESTful service leveraging AWS API Gateway, Lambda functions, and DynamoDB to provide scalable and serverless registration functionality. The solution can be easily deployed on AWS using Terraform, ensuring an automated and efficient setup.
 
