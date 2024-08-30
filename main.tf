@@ -78,6 +78,8 @@ resource "aws_lambda_function" "my_lambda" {
   handler          = "src/index.handler"
   runtime          = "nodejs18.x"
 
+  source_code_hash = filebase64sha256("lambda_function_payload.zip")
+
   environment {
     variables = {
       DYNAMODB_TABLE = aws_dynamodb_table.my_table.name
