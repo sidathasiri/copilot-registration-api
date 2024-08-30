@@ -1,4 +1,8 @@
-const { DynamoDBClient, PutItemCommand } = require("@aws-sdk/client-dynamodb");
+const {
+  DynamoDBClient,
+  PutItemCommand,
+  ScanCommand,
+} = require("@aws-sdk/client-dynamodb");
 
 const dynamoDbClient = new DynamoDBClient({ region: "us-east-1" });
 
@@ -16,6 +20,16 @@ const saveUser = async (user) => {
   return dynamoDbClient.send(new PutItemCommand(params));
 };
 
+const getProjects = async () => {
+  const params = {
+    TableName: process.env.DYNAMODB_TABLE,
+    IndexName: "ProjectIdIndex",
+  };
+
+  return dynamoDbClient.send(new ScanCommand(params));
+};
+
 module.exports = {
   saveUser,
+  getProjects,
 };
