@@ -27,6 +27,18 @@ resource "aws_dynamodb_table" "my_table" {
     name = "sk"
     type = "S"
   }
+
+  attribute {
+    name = "projectId"
+    type = "S"
+  }
+
+  # Global Secondary Index
+  global_secondary_index {
+    name               = "ProjectIdIndex"
+    hash_key           = "projectId"
+    projection_type    = "ALL" # You can use "ALL" or "KEYS_ONLY" or "INCLUDE"
+  }
 }
 
 # IAM Role for Lambda
