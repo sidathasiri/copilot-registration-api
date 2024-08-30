@@ -28,8 +28,14 @@ resource "aws_dynamodb_table" "my_table" {
     type = "S"
   }
 
+  # Attributes for the GSI
   attribute {
     name = "projectId"
+    type = "S"
+  }
+
+  attribute {
+    name = "githubId"
     type = "S"
   }
 
@@ -37,6 +43,7 @@ resource "aws_dynamodb_table" "my_table" {
   global_secondary_index {
     name               = "ProjectIdIndex"
     hash_key           = "projectId"
+    range_key          = "githubId"
     projection_type    = "ALL" # You can use "ALL" or "KEYS_ONLY" or "INCLUDE"
   }
 }
