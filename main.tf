@@ -70,6 +70,12 @@ resource "aws_iam_role_policy_attachment" "lambda_policy_attachment" {
   policy_arn = aws_iam_policy.lambda_dynamodb_policy.arn
 }
 
+resource "aws_iam_policy_attachment" "lambda_basic_execution_policy" {
+  name       = "lambda-basic-execution-policy-attachment"
+  roles      = [aws_iam_role.lambda_exec_role.name]
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+}
+
 # Lambda Function
 resource "aws_lambda_function" "my_lambda" {
   filename         = "lambda_function_payload.zip"
