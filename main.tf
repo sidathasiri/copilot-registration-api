@@ -6,7 +6,7 @@ provider "aws" {
 terraform {
   backend "s3" {
     bucket = "copilot-analyzer-tf-backend"
-    key    = "terraform/state"
+    key    = "api-gw/state"
     region = "us-east-1"
   }
 }
