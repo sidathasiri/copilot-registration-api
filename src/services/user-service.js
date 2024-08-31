@@ -39,7 +39,7 @@ const getAllUsers = async () => {
       }),
     };
   } catch (err) {
-    console.error("Error retrieving users:", err);
+    console.error("Error getting users:", err);
     return {
       statusCode: 500,
       body: JSON.stringify({

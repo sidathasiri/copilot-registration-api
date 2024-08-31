@@ -75,7 +75,7 @@ resource "aws_iam_policy" "lambda_dynamodb_policy" {
     Version = "2012-10-17"
     Statement = [
       {
-        Action   = ["dynamodb:PutItem", "dynamodb:GetItem", "dynamodb:UpdateItem", "dynamodb:DeleteItem"]
+        Action   = ["dynamodb:PutItem", "dynamodb:GetItem", "dynamodb:UpdateItem", "dynamodb:DeleteItem", "dynamodb:Scan"]
         Effect   = "Allow"
         Resource = aws_dynamodb_table.my_table.arn
       }
@@ -147,17 +147,24 @@ resource "aws_api_gateway_request_validator" "request_validator" {
   validate_request_parameters = false
 }
 
-# API Gateway Resource
-resource "aws_api_gateway_resource" "proxy" {
+# API Gateway Resource (register)
+resource "aws_api_gateway_resource" "register" {
   rest_api_id = aws_api_gateway_rest_api.my_rest_api.id
   parent_id   = aws_api_gateway_rest_api.my_rest_api.root_resource_id
   path_part   = "register"
 }
 
-# API Gateway Method
-resource "aws_api_gateway_method" "proxy_method" {
+# API Gateway Resource (users)
+resource "aws_api_gateway_resource" "users" {
+  rest_api_id = aws_api_gateway_rest_api.my_rest_api.id
+  parent_id   = aws_api_gateway_rest_api.my_rest_api.root_resource_id
+  path_part   = "users"
+}
+
+# API Gateway Method (POST /register)
+resource "aws_api_gateway_method" "register_method" {
   rest_api_id   = aws_api_gateway_rest_api.my_rest_api.id
-  resource_id   = aws_api_gateway_resource.proxy.id
+  resource_id   = aws_api_gateway_resource.register.id
   http_method   = "POST"
   authorization = "NONE"
 
@@ -168,11 +175,29 @@ resource "aws_api_gateway_method" "proxy_method" {
   }
 }
 
+# API Gateway Method (GET /users)
+resource "aws_api_gateway_method" "get_users_method" {
+  rest_api_id   = aws_api_gateway_rest_api.my_rest_api.id
+  resource_id   = aws_api_gateway_resource.users.id
+  http_method   = "GET"
+  authorization = "NONE"
+}
+
 # API Gateway Integration
-resource "aws_api_gateway_integration" "lambda_integration" {
+resource "aws_api_gateway_integration" "register_lambda_integration" {
   rest_api_id             = aws_api_gateway_rest_api.my_rest_api.id
-  resource_id             = aws_api_gateway_resource.proxy.id
-  http_method             = aws_api_gateway_method.proxy_method.http_method
+  resource_id             = aws_api_gateway_resource.register.id
+  http_method             = aws_api_gateway_method.register_method.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.my_lambda.invoke_arn
+}
+
+# API Gateway Integration
+resource "aws_api_gateway_integration" "get_users_lambda_integration" {
+  rest_api_id             = aws_api_gateway_rest_api.my_rest_api.id
+  resource_id             = aws_api_gateway_resource.users.id
+  http_method             = aws_api_gateway_method.get_users_method.http_method
   integration_http_method = "POST"
   type                    = "AWS_PROXY"
   uri                     = aws_lambda_function.my_lambda.invoke_arn
@@ -181,8 +206,15 @@ resource "aws_api_gateway_integration" "lambda_integration" {
 # API Gateway Deployment
 resource "aws_api_gateway_deployment" "api_deployment" {
   depends_on = [
-    aws_api_gateway_integration.lambda_integration
+    aws_api_gateway_method.register_method,
+    aws_api_gateway_method.get_users_method
   ]
+  triggers = {
+    redeployment = sha1(jsonencode(aws_api_gateway_rest_api.my_rest_api.body))
+  }
+  lifecycle {
+    create_before_destroy = true
+  }
   rest_api_id = aws_api_gateway_rest_api.my_rest_api.id
   stage_name  = "prod"
 }
