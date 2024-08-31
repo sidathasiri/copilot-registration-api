@@ -237,6 +237,10 @@ resource "aws_api_gateway_method_response" "get_users_method_response" {
   http_method = aws_api_gateway_method.get_users_method.http_method
   status_code = "200"
 
+  response_models = {
+    "application/json" = "Empty"
+  }
+
   response_parameters = {
     "method.response.header.Access-Control-Allow-Headers" = true
     "method.response.header.Access-Control-Allow-Methods" = true
@@ -250,6 +254,10 @@ resource "aws_api_gateway_integration_response" "get_users_integration_response"
   resource_id = aws_api_gateway_resource.users.id
   http_method = aws_api_gateway_method.get_users_method.http_method
   status_code = "200"
+
+  response_templates = {
+    "application/json" = "$input.json('$.body')"
+  }
 
   response_parameters = {
     "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"

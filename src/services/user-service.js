@@ -32,13 +32,12 @@ const getAllUsers = async () => {
     return {
       statusCode: 200,
       body: JSON.stringify({
-        data: JSON.stringify({
-          count: data.Count,
-          users: items,
-        }),
+        count: data.Count,
+        users: items,
       }),
       headers: {
         "Access-Control-Allow-Origin": "*",
+        "Content-Type": "application/json",
       },
     };
   } catch (err) {
