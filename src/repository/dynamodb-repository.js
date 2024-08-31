@@ -20,7 +20,7 @@ const saveUser = async (user) => {
   return dynamoDbClient.send(new PutItemCommand(params));
 };
 
-const getProjects = async () => {
+const getUsers = async () => {
   const params = {
     TableName: process.env.DYNAMODB_TABLE,
     IndexName: "ProjectIdIndex",
@@ -31,5 +31,5 @@ const getProjects = async () => {
 
 module.exports = {
   saveUser,
-  getProjects,
+  getUsers,
 };

@@ -1,5 +1,4 @@
-const { retrieveProjects } = require("./services/project-service");
-const { registerUser } = require("./services/user-service");
+const { registerUser, getAllUsers } = require("./services/user-service");
 
 exports.handler = async (event) => {
   const { httpMethod, resource } = event;
@@ -10,9 +9,9 @@ exports.handler = async (event) => {
     const requestBody = JSON.parse(event.body);
     console.log("Register request received", requestBody);
     return registerUser(requestBody);
-  } else if (request === "GET /projects") {
+  } else if (request === "GET /users") {
     console.log("Get projects request received");
-    return retrieveProjects();
+    return getAllUsers();
   } else {
     return {
       statusCode: 400,
