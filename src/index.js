@@ -18,14 +18,12 @@ exports.handler = async (event) => {
   } else if (request === "GET /users") {
     console.log("Get projects request received");
     return getAllUsers();
-  } else if (request === "POST /users/metrics/{metricName}") {
-    const metricName = event.pathParameters?.metricName;
+  } else if (request === "POST /metrics") {
     const body = JSON.parse(event.body);
     console.log("Metrics request received", {
-      metricName,
       body: body,
     });
-    return getUsersMetrics(metricName, body.githubIds);
+    return getUsersMetrics(body.metricName, body.githubIds);
   } else {
     return {
       statusCode: 400,
