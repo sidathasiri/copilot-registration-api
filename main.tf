@@ -267,11 +267,36 @@ resource "aws_api_gateway_integration" "options_users_integration" {
   type                    = "MOCK"
 }
 
+# OPTIONS Integration (Mock) to Handle Preflight
+resource "aws_api_gateway_integration" "options_metrics_integration" {
+  rest_api_id             = aws_api_gateway_rest_api.my_rest_api.id
+  resource_id             = aws_api_gateway_resource.metrics.id
+  http_method             = aws_api_gateway_method.options_metrics_method.http_method
+  request_templates = {
+    "application/json" = "{\"statusCode\": 200}"
+  }
+  type                    = "MOCK"
+}
+
 # OPTIONS Method Response for Preflight
 resource "aws_api_gateway_method_response" "options_users_method_response" {
   rest_api_id = aws_api_gateway_rest_api.my_rest_api.id
   resource_id = aws_api_gateway_resource.users.id
   http_method = aws_api_gateway_method.options_users_method.http_method
+  status_code = "200"
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Origin"  = true
+  }
+}
+
+# OPTIONS Method Response for Preflight
+resource "aws_api_gateway_method_response" "options_metrics_method_response" {
+  rest_api_id = aws_api_gateway_rest_api.my_rest_api.id
+  resource_id = aws_api_gateway_resource.metrics.id
+  http_method = aws_api_gateway_method.options_metrics_method.http_method
   status_code = "200"
 
   response_parameters = {
@@ -295,6 +320,20 @@ resource "aws_api_gateway_method_response" "get_users_method_response" {
   }
 }
 
+# GET Method Response with CORS Headers
+resource "aws_api_gateway_method_response" "post_metrics_method_response" {
+  rest_api_id = aws_api_gateway_rest_api.my_rest_api.id
+  resource_id = aws_api_gateway_resource.metrics.id
+  http_method = aws_api_gateway_method.post_users_metrics_method.http_method
+  status_code = "200"
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Origin"  = true
+  }
+}
+
 resource "aws_api_gateway_integration_response" "options_users_integration_response" {
   rest_api_id = aws_api_gateway_rest_api.my_rest_api.id
   resource_id = aws_api_gateway_resource.users.id
@@ -308,10 +347,31 @@ resource "aws_api_gateway_integration_response" "options_users_integration_respo
   }
 }
 
+resource "aws_api_gateway_integration_response" "options_metrics_integration_response" {
+  rest_api_id = aws_api_gateway_rest_api.my_rest_api.id
+  resource_id = aws_api_gateway_resource.metrics.id
+  http_method = aws_api_gateway_method.options_metrics_method.http_method
+  status_code = "200"
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+    "method.response.header.Access-Control-Allow-Methods" = "'GET,OPTIONS,POST'"
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
+}
+
 # OPTIONS Method for CORS Preflight
 resource "aws_api_gateway_method" "options_users_method" {
   rest_api_id   = aws_api_gateway_rest_api.my_rest_api.id
   resource_id   = aws_api_gateway_resource.users.id
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+
+# OPTIONS Method for CORS Preflight
+resource "aws_api_gateway_method" "options_metrics_method" {
+  rest_api_id   = aws_api_gateway_rest_api.my_rest_api.id
+  resource_id   = aws_api_gateway_resource.metrics.id
   http_method   = "OPTIONS"
   authorization = "NONE"
 }
