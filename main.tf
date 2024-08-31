@@ -75,7 +75,7 @@ resource "aws_iam_policy" "lambda_dynamodb_policy" {
     Version = "2012-10-17"
     Statement = [
       {
-        Action   = ["dynamodb:PutItem", "dynamodb:GetItem", "dynamodb:UpdateItem", "dynamodb:DeleteItem", "dynamodb:Scan"]
+        Action   = ["dynamodb:PutItem", "dynamodb:GetItem", "dynamodb:UpdateItem", "dynamodb:Query", "dynamodb:Scan"]
         Effect   = "Allow"
         Resource = aws_dynamodb_table.my_table.arn
       }

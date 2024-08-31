@@ -1,5 +1,13 @@
-const { saveUser, getUsers } = require("../repository/dynamodb-repository");
-const { getFormattedDynamoDBItem } = require("../utils/dynamodb-utils");
+const {
+  saveUser,
+  getUsers,
+  getUserMetric,
+} = require("../repository/dynamodb-repository");
+const {
+  getFormattedDynamoDBItem,
+  removeDataTypeInDynamoDBItem,
+  formatUsersMetrics,
+} = require("../utils/dynamodb-utils");
 
 const registerUser = async (requestBody) => {
   try {
@@ -51,7 +59,49 @@ const getAllUsers = async () => {
   }
 };
 
+const getUsersMetrics = async (metricName, githubIDs = []) => {
+  try {
+    // Create an array of promises for each item
+    const metricPromises = githubIDs.map((githubId) =>
+      getUserMetric(githubId, metricName)
+    );
+    // Execute all promises in parallel and wait for them to resolve
+    const response = await Promise.all(metricPromises);
+    console.log("response:", response);
+    const results = formatUsersMetrics(response);
+    console.log("results:", results);
+    const processedResult = {};
+    results.forEach((item) => {
+      // Get the githubId and its corresponding array of objects
+      const githubId = Object.keys(item)[0];
+      const values = item[githubId];
+
+      // Add or initialize the githubId key in the result object
+      processedResult[githubId] = values;
+    });
+
+    console.log("processedResult:", processedResult);
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
+        metricName,
+        data: processedResult,
+      }),
+    };
+  } catch (err) {
+    console.error("Error getting user metrics:", err);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({
+        message: "Failed to retrieve user metrics",
+      }),
+    };
+  }
+};
+
 module.exports = {
   registerUser,
   getAllUsers,
+  getUsersMetrics,
 };
