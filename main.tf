@@ -163,7 +163,7 @@ resource "aws_api_gateway_request_validator" "request_validator" {
   rest_api_id = aws_api_gateway_rest_api.my_rest_api.id
   name        = "ValidateRequestBody"
   validate_request_body = true
-  validate_request_parameters = false
+  validate_request_parameters = true
 }
 
 # API Gateway Resource (register)
@@ -227,6 +227,10 @@ resource "aws_api_gateway_method" "post_users_metrics_method" {
 
   request_models = {
     "application/json" = aws_api_gateway_model.get_users_metrics_request_model.name
+  }
+
+  request_parameters = {
+    "method.request.path.metricName" = true
   }
 }
 
