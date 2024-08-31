@@ -88,6 +88,10 @@ const getUsersMetrics = async (metricName, githubIDs = []) => {
         metricName,
         data: processedResult,
       }),
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Content-Type": "application/json",
+      },
     };
   } catch (err) {
     console.error("Error getting user metrics:", err);
