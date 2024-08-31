@@ -140,6 +140,25 @@ resource "aws_api_gateway_model" "request_model" {
   })
 }
 
+resource "aws_api_gateway_model" "get_users_metrics_request_model" {
+  rest_api_id = aws_api_gateway_rest_api.my_rest_api.id
+  name        = "UsersMetricsRequestModel"
+  content_type = "application/json"
+  schema = jsonencode({
+    type = "object"
+    properties = {
+      githubIds = {
+        type = "array",
+        items = {
+          type = "string"
+        }
+      }
+    }
+    required = ["githubIds"]
+    additionalProperties = false
+  })
+}
+
 resource "aws_api_gateway_request_validator" "request_validator" {
   rest_api_id = aws_api_gateway_rest_api.my_rest_api.id
   name        = "ValidateRequestBody"
@@ -159,6 +178,20 @@ resource "aws_api_gateway_resource" "users" {
   rest_api_id = aws_api_gateway_rest_api.my_rest_api.id
   parent_id   = aws_api_gateway_rest_api.my_rest_api.root_resource_id
   path_part   = "users"
+}
+
+# API Gateway Resource (users/metrics)
+resource "aws_api_gateway_resource" "metrics" {
+  rest_api_id = aws_api_gateway_rest_api.my_rest_api.id
+  parent_id   = aws_api_gateway_resource.users.id
+  path_part   = "metrics"
+}
+
+# API Gateway Resource (users/metrics/{metricName})
+resource "aws_api_gateway_resource" "metric_name" {
+  rest_api_id = aws_api_gateway_rest_api.my_rest_api.id
+  parent_id   = aws_api_gateway_resource.metrics.id
+  path_part   = "{metricName}"
 }
 
 # API Gateway Method (POST /register)
@@ -183,6 +216,20 @@ resource "aws_api_gateway_method" "get_users_method" {
   authorization = "NONE"
 }
 
+# API Gateway Method (GET /users/metrics/{metricName})
+resource "aws_api_gateway_method" "post_users_metrics_method" {
+  rest_api_id   = aws_api_gateway_rest_api.my_rest_api.id
+  resource_id   = aws_api_gateway_resource.metric_name.id
+  http_method   = "POST"
+  authorization = "NONE"
+
+  request_validator_id = aws_api_gateway_request_validator.request_validator.id
+
+  request_models = {
+    "application/json" = aws_api_gateway_model.get_users_metrics_request_model.name
+  }
+}
+
 # API Gateway Integration
 resource "aws_api_gateway_integration" "register_lambda_integration" {
   rest_api_id             = aws_api_gateway_rest_api.my_rest_api.id
@@ -200,6 +247,16 @@ resource "aws_api_gateway_integration" "get_users_lambda_integration" {
   http_method             = aws_api_gateway_method.get_users_method.http_method
   integration_http_method = "POST"
   type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.my_lambda.invoke_arn
+}
+
+# API Gateway Integration
+resource "aws_api_gateway_integration" "post_users_metrics_integration" {
+  rest_api_id             = aws_api_gateway_rest_api.my_rest_api.id
+  resource_id             = aws_api_gateway_resource.metric_name.id
+  http_method             = aws_api_gateway_method.post_users_metrics_method.http_method
+  type                    = "AWS_PROXY"
+  integration_http_method = "POST"
   uri                     = aws_lambda_function.my_lambda.invoke_arn
 }
 
@@ -279,6 +336,7 @@ resource "aws_api_gateway_deployment" "api_deployment" {
   depends_on = [
     aws_api_gateway_method.register_method,
     aws_api_gateway_method.get_users_method,
+    aws_api_gateway_method.post_users_metrics_method,
     aws_api_gateway_method.options_users_method
   ]
   triggers = {
