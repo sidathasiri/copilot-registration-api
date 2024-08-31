@@ -37,6 +37,9 @@ const getAllUsers = async () => {
           users: items,
         }),
       }),
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+      },
     };
   } catch (err) {
     console.error("Error getting users:", err);
