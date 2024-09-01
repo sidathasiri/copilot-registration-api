@@ -112,6 +112,39 @@ resource "aws_lambda_function" "my_lambda" {
   }
 }
 
+resource "aws_lambda_function" "authorizer_lambda" {
+  filename         = "lambda_function_payload.zip"
+  function_name    = "copilot-authorizer"
+  role             = aws_iam_role.lambda_exec_role.arn
+  handler          = "src/authorizer.handler"
+  runtime          = "nodejs18.x"
+
+  source_code_hash = filebase64sha256("lambda_function_payload.zip")
+
+  environment {
+    variables = {
+      VALID_API_KEY = "your_api_key"
+    }
+  }
+}
+
+resource "aws_api_gateway_authorizer" "api_authorizer" {
+  name            = "LambdaAuthorizer"
+  rest_api_id     = aws_api_gateway_rest_api.my_rest_api.id
+  authorizer_uri  = aws_lambda_function.authorizer_lambda.invoke_arn
+  authorizer_result_ttl_in_seconds = 0
+  type            = "REQUEST"
+  identity_source = "method.request.header.Authorization"
+}
+
+resource "aws_lambda_permission" "auth_lambda_permission" {
+  statement_id  = "AllowExecutionFromAPIGateway"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.authorizer_lambda.function_name
+  principal     = "apigateway.amazonaws.com"
+}
+
+
 # API Gateway REST API
 resource "aws_api_gateway_rest_api" "my_rest_api" {
   name        = "copilot-registration-api"
@@ -209,7 +242,8 @@ resource "aws_api_gateway_method" "get_users_method" {
   rest_api_id   = aws_api_gateway_rest_api.my_rest_api.id
   resource_id   = aws_api_gateway_resource.users.id
   http_method   = "GET"
-  authorization = "NONE"
+  authorization = "CUSTOM"
+  authorizer_id = aws_api_gateway_authorizer.api_authorizer.id
 }
 
 # API Gateway Method (GET /metrics)
@@ -217,7 +251,8 @@ resource "aws_api_gateway_method" "post_users_metrics_method" {
   rest_api_id   = aws_api_gateway_rest_api.my_rest_api.id
   resource_id   = aws_api_gateway_resource.metrics.id
   http_method   = "POST"
-  authorization = "NONE"
+  authorization = "CUSTOM"
+  authorizer_id = aws_api_gateway_authorizer.api_authorizer.id
 
   request_validator_id = aws_api_gateway_request_validator.request_validator.id
 
