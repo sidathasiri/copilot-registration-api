@@ -1,42 +1,33 @@
-const { DynamoDBClient, PutItemCommand } = require("@aws-sdk/client-dynamodb");
-
-const dynamoDbClient = new DynamoDBClient({ region: "us-east-1" });
+const {
+  registerUser,
+  getAllUsers,
+  getUsersMetrics,
+} = require("./services/user-service");
 
 exports.handler = async (event) => {
-  const requestBody = JSON.parse(event.body);
+  const { httpMethod, resource } = event;
 
-  console.log("Request body", requestBody);
+  const request = `${httpMethod} ${resource}`;
 
-  // Prepare the DynamoDB put command
-  const params = {
-    TableName: "CopilotUsage", // Replace with your table name
-    Item: {
-      pk: { S: `user#${requestBody.machineId}` },
-      sk: { S: `user#${requestBody.machineId}` },
-      machineId: { S: requestBody.machineId },
-      projectId: { S: requestBody.projectId },
-      githubId: { S: requestBody.githubId }
-    },
-  };
+  console.log("Request received:", request);
 
-  try {
-    // Execute the put command
-    await dynamoDbClient.send(new PutItemCommand(params));
+  if (request === "POST /register") {
+    const requestBody = JSON.parse(event.body);
+    console.log("Register request received", requestBody);
+    return registerUser(requestBody);
+  } else if (request === "GET /users") {
+    console.log("Get projects request received");
+    return getAllUsers();
+  } else if (request === "POST /metrics") {
+    const body = JSON.parse(event.body);
+    console.log("Metrics request received", {
+      body: body,
+    });
+    return getUsersMetrics(body.metricName, body.githubIds);
+  } else {
     return {
-      statusCode: 201,
-      body: JSON.stringify({
-        message: "Registration succesful",
-        data: requestBody
-      }),
-    };
-  } catch (err) {
-    console.error("Error", err);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({
-        message: "Failed to save item",
-        error: err.message,
-      }),
+      statusCode: 400,
+      body: "Invalid request",
     };
   }
 };
